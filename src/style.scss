@@ -1,14 +1,32 @@
 .meta-fields-panel {
-    padding: 16px;
-    border-top: 1px solid #e2e4e7;
 
-    .meta-fields-title {
-        margin-bottom: calc(16px);
+    .meta-fields-title,
+    .meta-fields-description {
+        margin-bottom: 16px;
     }
-}
 
-.meta-fields-image-field {
-    margin-top: 16px;
+    .meta-fields-image-field {
+        margin-top: 16px;
+
+        .meta-fields-label {
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .meta-fields-image-upload {
+            margin-bottom: 16px;
+        }
+
+        .meta-fields-image-preview {
+            margin-top: 8px;
+
+            img {
+                max-width: 100%;
+                height: auto;
+                margin-bottom: 8px;
+            }
+        }
+    }
 }
 
 .meta-fields-label {

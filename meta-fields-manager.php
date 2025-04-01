@@ -1,9 +1,9 @@
 <?php
 /**
- * Plugin Name: Meta Fields Manager
+ * Plugin Name: Meta fields
  * Description: Adds meta title, description, and image fields to posts and pages with Open Graph & Twitter Cards support.
  * Version: 1.0.0
- * Author: Your Name
+ * Author: BB
  * License: GPL v2 or later
  */
 
@@ -42,9 +42,9 @@ class Meta_Fields_Manager {
         register_post_meta('', '_meta_image', array(
             'show_in_rest' => true,
             'single' => true,
-            'type' => 'string',
+            'type' => 'integer',
             'auth_callback' => array($this, 'check_edit_permission'),
-            'sanitize_callback' => 'esc_url_raw'
+            'sanitize_callback' => 'absint'
         ));
     }
 
@@ -99,6 +99,11 @@ class Meta_Fields_Manager {
     public function validate_image_url($request) {
         $url = $request->get_param('url');
         
+        // Handle relative URLs from WordPress media library
+        if (strpos($url, 'http') !== 0) {
+            $url = site_url($url);
+        }
+        
         // Check if URL is from allowed domains
         $allowed_domains = array(
             parse_url(get_site_url(), PHP_URL_HOST),
@@ -115,7 +120,11 @@ class Meta_Fields_Manager {
         }
 
         // Verify image exists and is accessible
-        $response = wp_remote_get($url, array('timeout' => 10));
+        $response = wp_remote_get($url, array(
+            'timeout' => 10,
+            'sslverify' => false // Add this for local development
+        ));
+        
         if (is_wp_error($response)) {
             return new WP_Error(
                 'image_not_found',
@@ -140,6 +149,7 @@ class Meta_Fields_Manager {
         // List of common image content types
         $valid_image_types = array(
             'image/jpeg',
+            'image/jpg',
             'image/png',
             'image/gif',
             'image/webp',
@@ -204,7 +214,7 @@ class Meta_Fields_Manager {
         $post_id = get_the_ID();
         $meta_title = get_post_meta($post_id, '_meta_title', true);
         $meta_description = get_post_meta($post_id, '_meta_description', true);
-        $meta_image = get_post_meta($post_id, '_meta_image', true);
+        $meta_image_id = get_post_meta($post_id, '_meta_image', true);
 
         // If no custom meta title, use post title
         if (empty($meta_title)) {
@@ -216,8 +226,11 @@ class Meta_Fields_Manager {
             $meta_description = get_the_excerpt();
         }
 
-        // If no custom meta image, use featured image
-        if (empty($meta_image)) {
+        // Get image URL from ID
+        $meta_image = '';
+        if (!empty($meta_image_id)) {
+            $meta_image = wp_get_attachment_url($meta_image_id);
+        } elseif (has_post_thumbnail($post_id)) {
             $meta_image = get_the_post_thumbnail_url($post_id, 'full');
         }
 

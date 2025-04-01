@@ -1,27 +1,34 @@
 {
   "name": "meta-fields-manager",
   "version": "1.0.0",
-  "description": "WordPress plugin for managing meta fields",
+  "description": "WordPress plugin for managing meta fields in the block editor",
   "scripts": {
-    "build": "npx wp-scripts build",
-    "start": "npx wp-scripts start"
+    "build": "wp-scripts build",
+    "start": "wp-scripts start",
+    "check-engines": "wp-scripts check-engines",
+    "check-licenses": "wp-scripts check-licenses",
+    "format": "wp-scripts format",
+    "lint:css": "wp-scripts lint-style",
+    "lint:js": "wp-scripts lint-js",
+    "lint:md:docs": "wp-scripts lint-md-docs",
+    "lint:pkg-json": "wp-scripts lint-pkg-json",
+    "packages-update": "wp-scripts packages-update",
+    "plugin-zip": "wp-scripts plugin-zip",
+    "test:e2e": "wp-scripts test-e2e",
+    "test:unit": "wp-scripts test-unit-js"
+  },
+  "author": "",
+  "license": "GPL-2.0-or-later",
+  "devDependencies": {
+    "@wordpress/scripts": "^27.5.0"
   },
   "dependencies": {
-    "@wordpress/block-editor": "^12.15.0",
-    "@wordpress/components": "^25.13.0",
-    "@wordpress/data": "^9.17.0",
-    "@wordpress/edit-post": "^7.24.0",
-    "@wordpress/element": "^5.24.0",
-    "@wordpress/i18n": "^4.47.0",
-    "@wordpress/plugins": "^6.15.0"
-  },
-  "devDependencies": {
-    "@wordpress/scripts": "^27.0.0",
-    "css-loader": "^7.1.2",
-    "postcss-loader": "^8.1.1",
-    "sass-loader": "^16.0.5",
-    "style-loader": "^4.0.0",
-    "webpack-bundle-analyzer": "^4.10.2"
+    "@wordpress/block-editor": "^12.26.0",
+    "@wordpress/components": "^25.16.0",
+    "@wordpress/data": "^9.21.0",
+    "@wordpress/edit-post": "^7.26.0",
+    "@wordpress/plugins": "^6.15.0",
+    "@wordpress/interface": "^5.4.0"
   },
   "engines": {
     "node": ">=16.0.0"
