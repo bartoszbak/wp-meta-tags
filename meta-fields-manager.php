@@ -1,7 +1,7 @@
 <?php
 /**
- * Plugin Name: SEO fields
- * Description: Adds meta title, description, and image fields to posts and pages with Open Graph & Twitter Cards support.
+ * Plugin Name: SEO Fields
+ * Description: Adds meta title, description, keywords, author, and image fields to posts and pages with Open Graph & social media card support.
  * Version: 1.0.0
  * Author: BB.CV
  * License: GPL v2 or later
@@ -362,7 +362,6 @@ class Meta_Fields_Manager {
 
         // Output meta tags
         echo "\n<!-- Primary Meta Tags -->\n";
-        echo '<title>' . esc_html($meta_title) . '</title>' . "\n";
         echo '<meta name="title" content="' . esc_attr($meta_title) . '" />' . "\n";
         echo '<meta name="description" content="' . esc_attr($meta_description) . '" />' . "\n";
         echo '<meta name="keywords" content="' . esc_attr($meta_keywords) . '" />' . "\n";
@@ -374,6 +373,7 @@ class Meta_Fields_Manager {
         echo '<meta property="og:url" content="' . esc_url($current_url) . '" />' . "\n";
         echo '<meta property="og:title" content="' . esc_attr($meta_title) . '" />' . "\n";
         echo '<meta property="og:description" content="' . esc_attr($meta_description) . '" />' . "\n";
+        echo '<meta property="og:site_name" content="' . esc_attr(get_bloginfo('name')) . '" />' . "\n";
         if ($meta_image) {
             echo '<meta property="og:image" content="' . esc_url($meta_image) . '" />' . "\n";
             echo '<meta property="og:image:secure_url" content="' . esc_url($meta_image) . '" />' . "\n";
