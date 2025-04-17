@@ -1,131 +1,127 @@
-.meta-fields-panel {
+:root {
+    --meta-fields-spacing-xs: 4px;
+    --meta-fields-spacing-sm: 8px;
+    --meta-fields-spacing-md: 16px;
+    --meta-fields-spacing-lg: 24px;
+    --meta-fields-color-text: var(--wp-components-color-foreground, #1e1e1e);
+    --meta-fields-color-text-secondary: #757575;
+    --meta-fields-color-border: rgba(0, 0, 0, 0.1);
+    --meta-fields-border-radius: 2px;
+    --meta-fields-popover-min-width: 300px;
+    --meta-fields-popover-max-width: 400px;
+    --meta-fields-image-preview-height: 140px;
+}
 
-    .meta-fields-title,
-    .meta-fields-description {
-        margin-bottom: 16px;
+.components-flex{
+    display: flex;
+    -webkit-box-align: center;
+    align-items: center;
+    flex-direction: row;
+    gap: var(--meta-fields-spacing-sm);
+    -webkit-box-pack: justify;
+    justify-content: space-between;
+    width: 100%;
+
+    .components-button.is-pressed:hover:not(:disabled,[aria-disabled=true]){
+        background: 
+        color-mix(in srgb, var(--wp-components-color-accent, var(--wp-admin-theme-color, #3858e9)) 8%, #0000) !important;
     }
-
-    .meta-fields-image-field {
-        margin-top: 16px;
-
-        .meta-fields-label {
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-
-        .meta-fields-image-upload {
-            margin-bottom: 16px;
-        }
-
-        .meta-fields-image-preview {
-            margin-top: 8px;
-
-            img {
-                max-width: 100%;
-                height: auto;
-                margin-bottom: 8px;
-            }
-        }
-    }
-}
-
-.meta-fields-label {
-    font-size: 11px;
-    font-weight: 500;
-    line-height: 1.4;
-    text-transform: uppercase;
-    display: block;
-    margin-bottom: calc(8px);
-    padding: 0px;
-}
-
-.meta-fields-image-upload {
-    margin-top: 8px;
-}
-
-.meta-fields-image-preview {
-    margin-top: 12px;
-    border-radius: 4px;
-
-    img {
-        box-shadow: inset 0 0 1px #000000;
-        border-radius: 4px;
-        display: block;
-        height: auto;
-        margin-bottom: 8px;
-        max-width: 100%;
-        outline: 1px solid rgba(0, 0, 0, 0.1);
-        outline-offset: -1px;
+    .components-button.is-pressed:not(:disabled,[aria-disabled=true]) {
+        background: none;
+        color: var(--wp-components-color-accent, var(--wp-admin-theme-color, #3858e9));
     }
 }
 
-/* Target WordPress editor specific elements */
-.edit-post-sidebar {
-    .meta-fields-panel {
-        padding: 16px;
-        border-top: 1px solid #e2e4e7;
+.meta-fields-popover {
 
-        > div:first-child {
-            margin-bottom: 24px;
+    .meta-fields-panel-header{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--meta-fields-spacing-md);
+
+        h2{
+            line-height: 1.4;
+            margin: 0;
+            text-wrap: pretty;
+            color: var(--meta-fields-color-text);
+            font-size: 13px;
+            font-weight: 600;
+            display: block;
         }
 
-        .components-base-control {
-            .components-base-control__field {
-                .components-text-control__input,
-                .components-textarea-control__input {
-                    min-height: 100px;
-                }
-            }
+    }
+
+    .meta-fields-panel-content {
+        padding: var(--meta-fields-spacing-sm);
+        min-width: var(--meta-fields-popover-min-width);
+        max-width: var(--meta-fields-popover-max-width);
+
+        @media (max-width: 782px) {
+            min-width: 100%;
+            max-width: 100%;
         }
+
+        .meta-fields-helper-text{
+            margin-top: var(--meta-fields-spacing-sm);
+            margin-bottom: var(--meta-fields-spacing-md);
+            font-size: 12px;
+            font-style: normal;
+            color: var(--meta-fields-color-text-secondary);}
 
         .meta-fields-image-field {
-            margin-top: 16px;
+            margin-top: var(--meta-fields-spacing-md);
 
             .meta-fields-label {
-                font-size: 11px;
+                margin-bottom: var(--meta-fields-spacing-sm);
                 font-weight: 500;
-                line-height: 1.4;
-                text-transform: uppercase;
-                display: block;
-                margin-bottom: 8px;
-                padding: 0;
             }
 
-            .meta-fields-image-upload {
-                margin-top: 8px;
-
-                .components-button {
-                    display: block;
-                    width: 100%;
-                }
+            .meta-fields-image-actions{
+                display: flex;
+                gap: var(--meta-fields-spacing-sm);
             }
 
             .meta-fields-image-preview {
-                margin-top: 12px;
-                padding: 8px;
-                background: #f0f0f1;
-                border-radius: 4px;
+                margin-top: var(--meta-fields-spacing-sm);
 
-                img {
+                .meta-fields-image-preview-inner {
                     max-width: 100%;
-                    height: auto;
-                    margin-bottom: 8px;
+                    height: var(--meta-fields-image-preview-height);
+                    border-radius: var(--meta-fields-border-radius);
+                    box-shadow: inset 0 0 1px #000;
                     display: block;
-                    border-radius: 4px;
-                    box-shadow: inset 0 0 1px #000000;
-                    outline: 1px solid rgba(0, 0, 0, 0.1);
+                    margin-bottom: var(--meta-fields-spacing-sm);
+                    outline: 1px solid var(--meta-fields-color-border);
                     outline-offset: -1px;
-                }
-
-                .components-button.is-destructive {
-                    margin-top: 8px;
+                    background-position: center;
+                    background-size: cover;
+                    background-repeat: no-repeat;
                 }
             }
+        }
+
+        .meta-fields-label {
+            font-size: 11px;
+            font-weight: 500;
+            line-height: 1.4;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: var(--meta-fields-spacing-sm);
+            padding: 0px;
         }
     }
 }
 
-/* Style the textarea to match other inputs */
-.edit-post-sidebar .meta-fields-panel .components-textarea-control__input {
-    min-height: 100px;
-} 
+// RTL Support
+[dir="rtl"] {
+    .meta-fields-popover {
+        .meta-fields-panel-header {
+            flex-direction: row-reverse;
+        }
+
+        .meta-fields-image-actions {
+            flex-direction: row-reverse;
+        }
+    }
+}

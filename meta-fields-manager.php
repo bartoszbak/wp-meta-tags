@@ -1,9 +1,9 @@
 <?php
 /**
- * Plugin Name: Meta fields
+ * Plugin Name: SEO fields
  * Description: Adds meta title, description, and image fields to posts and pages with Open Graph & Twitter Cards support.
  * Version: 1.0.0
- * Author: BB
+ * Author: BB.CV
  * License: GPL v2 or later
  */
 
@@ -18,8 +18,14 @@ class Meta_Fields_Manager {
     public function __construct() {
         add_action('init', array($this, 'register_meta'));
         add_action('enqueue_block_editor_assets', array($this, 'enqueue_editor_assets'));
-        add_action('wp_head', array($this, 'output_meta_tags'));
+        add_action('wp_head', array($this, 'output_meta_tags'), 1);
         add_action('rest_api_init', array($this, 'register_rest_routes'));
+        
+        // Add title filters
+        add_filter('wp_title', array($this, 'filter_wp_title'), 10, 2);
+        add_filter('document_title_parts', array($this, 'filter_document_title_parts'));
+        add_filter('bloginfo', array($this, 'filter_bloginfo'), 10, 2);
+        add_filter('bloginfo_rss', array($this, 'filter_bloginfo'), 10, 2);
     }
 
     public function register_meta() {
@@ -46,6 +52,62 @@ class Meta_Fields_Manager {
             'auth_callback' => array($this, 'check_edit_permission'),
             'sanitize_callback' => 'absint'
         ));
+        
+        register_post_meta('', '_meta_keywords', array(
+            'show_in_rest' => true,
+            'single' => true,
+            'type' => 'string',
+            'auth_callback' => array($this, 'check_edit_permission'),
+            'sanitize_callback' => 'sanitize_text_field'
+        ));
+        
+        register_post_meta('', '_meta_author', array(
+            'show_in_rest' => true,
+            'single' => true,
+            'type' => 'string',
+            'auth_callback' => array($this, 'check_edit_permission'),
+            'sanitize_callback' => 'sanitize_text_field'
+        ));
+    }
+
+    public function filter_wp_title($title, $sep) {
+        if (is_singular()) {
+            $post_id = get_the_ID();
+            $meta_title = get_post_meta($post_id, '_meta_title', true);
+            if ($meta_title) {
+                return $meta_title;
+            }
+        }
+        return $title;
+    }
+
+    public function filter_document_title_parts($title_parts) {
+        if (is_singular()) {
+            $post_id = get_the_ID();
+            $meta_title = get_post_meta($post_id, '_meta_title', true);
+            if ($meta_title) {
+                $title_parts['title'] = $meta_title;
+                // Remove site name and tagline for cleaner title
+                if (isset($title_parts['site'])) {
+                    unset($title_parts['site']);
+                }
+                if (isset($title_parts['tagline'])) {
+                    unset($title_parts['tagline']);
+                }
+            }
+        }
+        return $title_parts;
+    }
+
+    public function filter_bloginfo($output, $show) {
+        if (is_singular() && 'name' === $show) {
+            $post_id = get_the_ID();
+            $meta_title = get_post_meta($post_id, '_meta_title', true);
+            if ($meta_title) {
+                return $meta_title;
+            }
+        }
+        return $output;
     }
 
     public function check_edit_permission() {
@@ -183,16 +245,45 @@ class Meta_Fields_Manager {
             return;
         }
 
-        $asset_file = include(plugin_dir_path(__FILE__) . 'build/index.asset.php');
+        $asset_file_path = plugin_dir_path(__FILE__) . 'build/index.asset.php';
+        if (!file_exists($asset_file_path)) {
+            return;
+        }
 
-        wp_enqueue_script(
-            'meta-fields-manager',
-            plugins_url('build/index.js', __FILE__),
-            $asset_file['dependencies'],
-            $asset_file['version']
+        $asset_file = include($asset_file_path);
+        if (!is_array($asset_file) || !isset($asset_file['dependencies']) || !isset($asset_file['version'])) {
+            return;
+        }
+
+        // Define core dependencies
+        $core_dependencies = array(
+            'wp-blocks',
+            'wp-block-editor',
+            'wp-components',
+            'wp-data',
+            'wp-element',
+            'wp-i18n',
+            'wp-plugins',
+            'wp-server-side-render'
         );
 
-        wp_enqueue_style(
+        // Merge with any additional dependencies from the asset file
+        $dependencies = array_unique(array_merge(
+            $core_dependencies,
+            array_diff($asset_file['dependencies'], ['wp-editor'])
+        ));
+
+        // Register and enqueue the script
+        wp_register_script(
+            'meta-fields-manager',
+            plugins_url('build/index.js', __FILE__),
+            $dependencies,
+            $asset_file['version'],
+            true
+        );
+
+        // Register and enqueue the style
+        wp_register_style(
             'meta-fields-manager',
             plugins_url('build/style-style.css', __FILE__),
             array('wp-components'),
@@ -204,10 +295,14 @@ class Meta_Fields_Manager {
             'nonce' => wp_create_nonce('wp_rest'),
             'restUrl' => rest_url('meta-fields-manager/v1/')
         ));
+
+        // Enqueue the assets
+        wp_enqueue_script('meta-fields-manager');
+        wp_enqueue_style('meta-fields-manager');
     }
 
     public function output_meta_tags() {
-        if (!is_singular() || !current_user_can('read')) {
+        if (!is_singular()) {
             return;
         }
 
@@ -215,6 +310,8 @@ class Meta_Fields_Manager {
         $meta_title = get_post_meta($post_id, '_meta_title', true);
         $meta_description = get_post_meta($post_id, '_meta_description', true);
         $meta_image_id = get_post_meta($post_id, '_meta_image', true);
+        $meta_keywords = get_post_meta($post_id, '_meta_keywords', true);
+        $meta_author = get_post_meta($post_id, '_meta_author', true);
 
         // If no custom meta title, use post title
         if (empty($meta_title)) {
@@ -226,6 +323,32 @@ class Meta_Fields_Manager {
             $meta_description = get_the_excerpt();
         }
 
+        // If no custom meta author, use post author
+        if (empty($meta_author)) {
+            $meta_author = get_the_author();
+        }
+
+        // If no custom meta keywords, use post categories and tags
+        if (empty($meta_keywords)) {
+            $categories = get_the_category();
+            $tags = get_the_tags();
+            $keywords = array();
+            
+            if ($categories) {
+                foreach ($categories as $category) {
+                    $keywords[] = $category->name;
+                }
+            }
+            
+            if ($tags) {
+                foreach ($tags as $tag) {
+                    $keywords[] = $tag->name;
+                }
+            }
+            
+            $meta_keywords = implode(', ', $keywords);
+        }
+
         // Get image URL from ID
         $meta_image = '';
         if (!empty($meta_image_id)) {
@@ -234,28 +357,40 @@ class Meta_Fields_Manager {
             $meta_image = get_the_post_thumbnail_url($post_id, 'full');
         }
 
-        // Basic meta tags
-        echo '<meta name="title" content="' . esc_attr($meta_title) . '">' . "\n";
-        echo '<meta name="description" content="' . esc_attr($meta_description) . '">' . "\n";
+        // Get current URL
+        $current_url = get_permalink();
 
-        // Open Graph tags
-        echo '<meta property="og:title" content="' . esc_attr($meta_title) . '">' . "\n";
-        echo '<meta property="og:description" content="' . esc_attr($meta_description) . '">' . "\n";
-        echo '<meta property="og:type" content="article">' . "\n";
-        echo '<meta property="og:url" content="' . esc_url(get_permalink()) . '">' . "\n";
-        
-        if ($meta_image) {
-            echo '<meta property="og:image" content="' . esc_url($meta_image) . '">' . "\n";
-        }
+        // Output meta tags
+        echo "\n<!-- Primary Meta Tags -->\n";
+        echo '<title>' . esc_html($meta_title) . '</title>' . "\n";
+        echo '<meta name="title" content="' . esc_attr($meta_title) . '" />' . "\n";
+        echo '<meta name="description" content="' . esc_attr($meta_description) . '" />' . "\n";
+        echo '<meta name="keywords" content="' . esc_attr($meta_keywords) . '" />' . "\n";
+        echo '<meta name="author" content="' . esc_attr($meta_author) . '" />' . "\n";
+        echo '<link rel="canonical" href="' . esc_url($current_url) . '" />' . "\n\n";
 
-        // Twitter Card tags
-        echo '<meta name="twitter:card" content="summary_large_image">' . "\n";
-        echo '<meta name="twitter:title" content="' . esc_attr($meta_title) . '">' . "\n";
-        echo '<meta name="twitter:description" content="' . esc_attr($meta_description) . '">' . "\n";
-        
+        echo "<!-- Open Graph / Facebook -->\n";
+        echo '<meta property="og:type" content="article" />' . "\n";
+        echo '<meta property="og:url" content="' . esc_url($current_url) . '" />' . "\n";
+        echo '<meta property="og:title" content="' . esc_attr($meta_title) . '" />' . "\n";
+        echo '<meta property="og:description" content="' . esc_attr($meta_description) . '" />' . "\n";
         if ($meta_image) {
-            echo '<meta name="twitter:image" content="' . esc_url($meta_image) . '">' . "\n";
+            echo '<meta property="og:image" content="' . esc_url($meta_image) . '" />' . "\n";
+            echo '<meta property="og:image:secure_url" content="' . esc_url($meta_image) . '" />' . "\n";
+            echo '<meta property="og:image:width" content="1200" />' . "\n";
+            echo '<meta property="og:image:height" content="630" />' . "\n";
         }
+        echo "\n";
+
+        echo "<!-- Twitter -->\n";
+        echo '<meta name="twitter:card" content="summary_large_image" />' . "\n";
+        echo '<meta name="twitter:url" content="' . esc_url($current_url) . '" />' . "\n";
+        echo '<meta name="twitter:title" content="' . esc_attr($meta_title) . '" />' . "\n";
+        echo '<meta name="twitter:description" content="' . esc_attr($meta_description) . '" />' . "\n";
+        if ($meta_image) {
+            echo '<meta name="twitter:image" content="' . esc_url($meta_image) . '" />' . "\n";
+        }
+        echo "\n";
     }
 }
 

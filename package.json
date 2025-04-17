@@ -1,7 +1,7 @@
 {
   "name": "meta-fields-manager",
   "version": "1.0.0",
-  "description": "WordPress plugin for managing meta fields in the block editor",
+  "description": "Adds meta title, description, and image fields to posts and pages with Open Graph & Twitter Cards support",
   "scripts": {
     "build": "wp-scripts build",
     "start": "wp-scripts start",
@@ -17,7 +17,7 @@
     "test:e2e": "wp-scripts test-e2e",
     "test:unit": "wp-scripts test-unit-js"
   },
-  "author": "",
+  "author": "BB.CV",
   "license": "GPL-2.0-or-later",
   "devDependencies": {
     "@wordpress/scripts": "^27.5.0"
